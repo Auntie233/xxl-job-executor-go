@@ -138,11 +138,14 @@ func (e *executor) runTask(writer http.ResponseWriter, request *http.Request) {
 	//req, _ := ioutil.ReadAll(request.Body)
 	req, _ := deserializeHessian(request.Body)
 	e.log.Info("最初任务参数:%v", req)
-	bodystr, _ := ioutil.ReadAll(request.Body)
-	e.log.Info(string(bodystr))
-	reqStr, _ := json.Marshal(req)
+	reqStr, err := json.Marshal(req)
+	if err != nil {
+		e.log.Error("参数Marshal报错:%+v", err)
+	}
+
+	e.log.Error("参数json化之后:" + string(reqStr))
 	param := &RunReq{}
-	err := json.Unmarshal(reqStr, &param)
+	err = json.Unmarshal(reqStr, &param)
 	if err != nil {
 		_, _ = writer.Write(returnCall(param, FailureCode, "params err"))
 		e.log.Error("参数解析错误:" + string(reqStr))
