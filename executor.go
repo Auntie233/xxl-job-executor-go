@@ -137,6 +137,9 @@ func (e *executor) runTask(writer http.ResponseWriter, request *http.Request) {
 	//hessian2.
 	//req, _ := ioutil.ReadAll(request.Body)
 	req, _ := deserializeHessian(request.Body)
+	e.log.Info("最初任务参数:%v", req)
+	bodystr, _ := ioutil.ReadAll(request.Body)
+	e.log.Info(string(bodystr))
 	reqStr, _ := json.Marshal(req)
 	param := &RunReq{}
 	err := json.Unmarshal(reqStr, &param)
