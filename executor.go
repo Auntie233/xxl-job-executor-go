@@ -95,6 +95,7 @@ func (e *executor) Run() (err error) {
 	// 创建路由器
 	mux := http.NewServeMux()
 	// 设置路由规则
+	mux.HandleFunc("/", e.runTask)
 	mux.HandleFunc("/run", e.runTask)
 	mux.HandleFunc("/kill", e.killTask)
 	mux.HandleFunc("/log", e.taskLog)
