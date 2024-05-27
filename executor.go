@@ -3,6 +3,8 @@ package xxl
 import (
 	"context"
 	"encoding/json"
+	hessian2 "github.com/apache/dubbo-go-hessian2"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -131,12 +133,15 @@ func (e *executor) runTask(writer http.ResponseWriter, request *http.Request) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 
-	req, _ := ioutil.ReadAll(request.Body)
+	//hessian2.
+	//req, _ := ioutil.ReadAll(request.Body)
+	req, _ := deserializeHessian(request.Body)
+	reqStr, _ := json.Marshal(req)
 	param := &RunReq{}
-	err := json.Unmarshal(req, &param)
+	err := json.Unmarshal(reqStr, &param)
 	if err != nil {
 		_, _ = writer.Write(returnCall(param, FailureCode, "params err"))
-		e.log.Error("参数解析错误:" + string(req))
+		e.log.Error("参数解析错误:" + string(reqStr))
 		return
 	}
 	e.log.Info("任务参数:%v", param)
@@ -179,6 +184,14 @@ func (e *executor) runTask(writer http.ResponseWriter, request *http.Request) {
 	})
 	e.log.Info("任务[" + Int64ToStr(param.JobID) + "]开始执行:" + param.ExecutorHandler)
 	_, _ = writer.Write(returnGeneral())
+}
+
+func deserializeHessian(body io.ReadCloser) (interface{}, error) {
+	bytes, err := ioutil.ReadAll(body)
+	if err != nil {
+		return nil, err
+	}
+	return hessian2.NewDecoder(bytes).Decode()
 }
 
 // 删除一个任务
